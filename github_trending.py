@@ -1,25 +1,21 @@
 import requests
 import json
 import datetime
-import itertools
+
+NUMBER_OF_REPOSITORIES_TO_SHOW = 20
 
 
 def get_trending_repositories(top_size):
     beginning_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
     todays_date = (datetime.datetime.now()).strftime('%Y-%m-%d')
-    api_url = 'https://api.github.com/search/repositories'
-    additional_parameters = '&sort=stars&order=desc'
-    top_trending_repos = requests.get('{}?q=language:python{}&q=created:"{}..{}"'.format(api_url,
-                                                                                         additional_parameters,
-                                                                                         beginning_date,
-                                                                                         todays_date))
-    top_trending_repos_json = json.loads(top_trending_repos.text)
-    top_trending_repos_json = itertools.islice(top_trending_repos_json['items'], 0, top_size)
-    return list(top_trending_repos_json)
+    url = 'https://api.github.com/search/repositories?q=python+created:"{}..{}"'.format(beginning_date, todays_date)
+    additional_parameters = {'sort': 'stars', 'order': 'desc', 'per_page': top_size}
+    top_trending_repos = requests.get(url, params=additional_parameters)
+    return json.loads(top_trending_repos.text)
 
 
-def get_repo_info(repos):
-    for item in repos:
+def shows_needed_info_about_repositories(repos):
+    for item in repos['items']:
         print("Repo name:{}\n\
                Number of stars:{}\n\
                Number of issues:{}\n\
@@ -27,5 +23,5 @@ def get_repo_info(repos):
 
 
 if __name__ == '__main__':
-    top_trending_repos = get_trending_repositories(20)
-    get_repo_info(top_trending_repos)
+    top_trending_repos = get_trending_repositories(NUMBER_OF_REPOSITORIES_TO_SHOW)
+    shows_needed_info_about_repositories(top_trending_repos)
